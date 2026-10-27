@@ -26,3 +26,10 @@ The trade-off is suppression without summaries. This handler drops records silen
 ## The awkward edge
 
 The bucket refills in whole tokens: `int(elapsed * rate)` is floored, so a fractional refill below one token is held until the next call accrues enough. At a `rate` of 1 token/sec, two `emit` calls 0.5s apart will not let the second one through even though "on average" it should. This keeps the state an integer token count and makes the limit a true floor on emissions, not an amortised average. If you need finer granularity, raise `rate` and `capacity` together.
+
+## Design notes
+
+The window stores values eagerly rather than keeping running aggregates. Running
+sums drift with floating point over long streams, and recomputing from a small
+buffer is cheap enough that the drift is not worth the speed.
+
